@@ -57,4 +57,6 @@ Sigue estos pasos para instalar y configurar el proyecto:
 
    Puedes probar la API en Postman con la URL `http://localhost:8080/api/`.
 
-   La documentación de la API se encuentra en: `https://documenter.getpostman.com/view/27314058/2sAXxMfteU`.
+# Documentación de la API
+
+La documentación de la API se encuentra en: [Documentación de la API](https://documenter.getpostman.com/view/27314058/2sAXxMfteU).
