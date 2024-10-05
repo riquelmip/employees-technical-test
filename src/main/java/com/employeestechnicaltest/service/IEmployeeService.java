@@ -13,4 +13,7 @@ public interface IEmployeeService {
 
     boolean deleteEmployeeById(Long userId);
 
+    List<EmployeeEntity> searchEmployeeByName(String name);
+
+    EmployeeEntity getEmployeeWithMaxSalary();
 }

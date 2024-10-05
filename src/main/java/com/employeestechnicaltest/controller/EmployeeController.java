@@ -115,4 +115,22 @@ public class EmployeeController {
         }
     }
 
+    @PostMapping("/search-by-name")
+    public ResponseEntity<ResponseObject> searchEmployeeByName(@Param("name") String name) {
+        try {
+            return ResponseObject.build(true, HttpStatus.OK, "Employees retrieved successfully", employeeService.searchEmployeeByName(name));
+        } catch (Exception e) {
+            return ResponseObject.build(false, HttpStatus.BAD_REQUEST, "Ocurró un error", e.getMessage());
+        }
+    }
+
+    @PostMapping("/get-employee-with-max-salary")
+    public ResponseEntity<ResponseObject> getEmployeeWithMaxSalary() {
+        try {
+            return ResponseObject.build(true, HttpStatus.OK, "Employee retrieved successfully", employeeService.getEmployeeWithMaxSalary());
+        } catch (Exception e) {
+            return ResponseObject.build(false, HttpStatus.BAD_REQUEST, "Ocurró un error", e.getMessage());
+        }
+    }
+
 }
