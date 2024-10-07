@@ -4,7 +4,8 @@ import com.employeestechnicaltest.model.EmployeeEntity;
 import com.employeestechnicaltest.model.QEmployeeEntity;
 import com.employeestechnicaltest.repository.EmployeeRepository;
 import com.employeestechnicaltest.service.IEmployeeService;
-import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +13,14 @@ import java.util.List;
 
 @Service
 public class EmployeeServiceImpl implements IEmployeeService {
+    private final JPAQueryFactory queryFactory;
+    private final EmployeeRepository employeeRepository;
+
     @Autowired
-    private EmployeeRepository employeeRepository;
+    public EmployeeServiceImpl(EntityManager entityManager, EmployeeRepository employeeRepository) {
+        this.queryFactory = new JPAQueryFactory(entityManager);
+        this.employeeRepository = employeeRepository;
+    }
 
     @Override
     public EmployeeEntity saveEmployee(EmployeeEntity employeeEntity) {
@@ -22,38 +29,43 @@ public class EmployeeServiceImpl implements IEmployeeService {
 
     @Override
     public List<EmployeeEntity> getAllEmployees() {
-        return employeeRepository.findAll();
+        QEmployeeEntity entity = QEmployeeEntity.employeeEntity;
+        return queryFactory.selectFrom(entity)
+                .fetch();
     }
 
     @Override
     public EmployeeEntity getEmployeeById(Long userId) {
-        return employeeRepository.findById(userId).orElse(null);
+        QEmployeeEntity entity = QEmployeeEntity.employeeEntity;
+        return queryFactory.selectFrom(entity)
+                .where(entity.employeeId.eq(userId))
+                .fetchOne();
     }
 
     @Override
     public boolean deleteEmployeeById(Long userId) {
-        return employeeRepository.findById(userId).map(employeeEntity -> {
-            employeeRepository.delete(employeeEntity);
-            return true;
-        }).orElse(false);
+        QEmployeeEntity entity = QEmployeeEntity.employeeEntity;
+        return queryFactory.delete(entity)
+                .where(entity.employeeId.eq(userId))
+                .execute() == 1;
     }
 
     @Override
     public List<EmployeeEntity> searchEmployeeByName(String name) {
         QEmployeeEntity qEmployeeEntity = QEmployeeEntity.employeeEntity;
-        return (List<EmployeeEntity>) employeeRepository.findAll(
-                qEmployeeEntity.name.likeIgnoreCase("%" + name + "%")
-        );
+        return queryFactory.selectFrom(qEmployeeEntity)
+                .where(qEmployeeEntity.name.containsIgnoreCase(name))
+                .fetch();
     }
 
     @Override
     public EmployeeEntity getEmployeeWithMaxSalary() {
         QEmployeeEntity employee = QEmployeeEntity.employeeEntity;
-       double maxSalary = employeeRepository.findAll().stream()
-                .mapToDouble(EmployeeEntity::getSalary)
-                .max()
-                .orElse(0);
-
-        return employeeRepository.findOne(employee.salary.eq(maxSalary)).orElse(null);
+        return queryFactory.selectFrom(employee)
+                .where(employee.salary.eq(
+                        queryFactory.select(employee.salary.max())
+                                .from(employee)
+                ))
+                .fetchOne();
     }
 }
